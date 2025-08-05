@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitamin & Supplement Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .main-content {
+            display: flex;
+            min-height: 600px;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #f8f9fa;
+            border-right: 2px solid #e9ecef;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            color: #495057;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .add-item {
+            margin-bottom: 20px;
+        }
+
+        .add-item input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .add-item textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            resize: vertical;
+            min-height: 80px;
+            font-size: 12px;
+        }
+
+        .add-item button {
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .add-item button:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .items-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .item {
+            background: white;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: grab;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .item:active {
+            cursor: grabbing;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .item h4 {
+            color: #495057;
+            margin: 0;
+            flex: 1;
+        }
+
+        .detail-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 6px 12px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .detail-btn:hover {
+            background: #138496;
+            transform: scale(1.05);
+        }
+
+        .item-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .item-content.expanded {
+            max-height: 500px;
+        }
+
+        .item-content p {
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.4;
+            margin: 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .schedule-area {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            height: 100%;
+        }
+
+        .time-slot {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s;
+            min-height: 200px;
+        }
+
+        .time-slot.drag-over {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .time-slot h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .scheduled-item {
+            background: white;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .scheduled-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scheduled-item h5 {
+            color: #495057;
+            margin-bottom: 3px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 2px solid #e9ecef;
+            text-align: center;
+        }
+
+        .controls button {
+            padding: 12px 24px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .report-btn {
+            background: #007bff;
+            color: white;
+        }
+
+        .report-btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .clear-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .clear-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .backup-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .backup-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .restore-btn {
+            background: #fd7e14;
+            color: white;
+        }
+
+        .restore-btn:hover {
+            background: #e8630a;
+            transform: translateY(-2px);
+        }
+
+        .hidden-file-input {
+            display: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            color: #495057;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .report-content {
+            font-family: monospace;
+            white-space: pre-line;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .item {
+                touch-action: none;
+                user-select: none;
+            }
+            
+            .item.mobile-selected {
+                background: #e3f2fd;
+                border-left-color: #2196f3;
+                transform: scale(0.95);
+            }
+            
+            .time-slot.mobile-highlight {
+                border-color: #2196f3;
+                background: #e3f2fd;
+            }
+            
+            .mobile-instructions {
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                padding: 10px;
+                margin: 10px 0;
+                border-radius: 8px;
+                font-size: 12px;
+                text-align: center;
+                color: #856404;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌟 Vitamin & Supplement Tracker</h1>
+            <p>Günlük vitamin ve supplement programınızı organize edin</p>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <h2>📦 Ürün Ekle</h2>
+                <div class="add-item">
+                    <input type="text" id="itemName" placeholder="Ürün adı (örn: Vitamin D3)">
+                    <textarea id="itemContent" placeholder="İçerik bilgisi (mg, içerikler vb.)&#10;Örnek: 1000 IU Vitamin D3&#10;Kolekkalsiferol içerir"></textarea>
+                    <button onclick="addItem()">Ürün Ekle</button>
+                </div>
+
+                <h2>📋 Ürün Listesi</h2>
+                <div class="mobile-instructions" id="mobileInstructions" style="display: none;">
+                    📱 <strong>Mobil Kullanım:</strong> Ürüne dokun, sonra istediğin zaman dilimine dokun
+                </div>
+                <div class="items-list" id="itemsList">
+                    <!-- Ürünler buraya eklenecek -->
+                </div>
+            </div>
+
+            <div class="schedule-area">
+                <div class="schedule-grid">
+                    <div class="time-slot" data-time="morning-empty" ondrop="drop(event)" ondragover="allowDrop(event)" onclick="handleMobileSlotClick('morning-empty')">
+                        <h3>🌅 Sabah Aç Karnına</h3>
+                        <div class="scheduled-items" id="morning-empty-items"></div>
+                    </div>
+                    
+                    <div class="time-slot" data-time="lunch-empty" ondrop="drop(event)" ondragover="allowDrop(event)" onclick="handleMobileSlotClick('lunch-empty')">
+                        <h3>🍽️ Öğlen Aç Karnına</h3>
+                        <div class="scheduled-items" id="lunch-empty-items"></div>
+                    </div>
+                    
+                    <div class="time-slot" data-time="evening-empty" ondrop="drop(event)" ondragover="allowDrop(event)" onclick="handleMobileSlotClick('evening-empty')">
+                        <h3>🌇 Akşam Aç Karnına</h3>
+                        <div class="scheduled-items" id="evening-empty-items"></div>
+                    </div>
+                    
+                    <div class="time-slot" data-time="bedtime" ondrop="drop(event)" ondragover="allowDrop(event)" onclick="handleMobileSlotClick('bedtime')">
+                        <h3>🌙 Gece Yatmadan Önce</h3>
+                        <div class="scheduled-items" id="bedtime-items"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="report-btn" onclick="generateReport()">📊 Günlük Rapor Oluştur</button>
+            <button class="backup-btn" onclick="backupData()">💾 Verileri Yedekle</button>
+            <button class="restore-btn" onclick="document.getElementById('fileInput').click()">📂 Verileri Geri Yükle</button>
+            <button class="clear-btn" onclick="clearAll()">🗑️ Tümünü Temizle</button>
+            <input type="file" id="fileInput" class="hidden-file-input" accept=".json" onchange="restoreData(event)">
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <h2>📋 Günlük Supplement Programı</h2>
+            <div class="report-content" id="reportContent"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="printReport()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">🖨️ Yazdır</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let items = [];
+        let schedule = {
+            'morning-empty': [],
+            'lunch-empty': [],
+            'evening-empty': [],
+            'bedtime': []
+        };
+
+        let selectedItem = null; // Mobil için seçili ürün
+        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        // Sayfa yüklendiğinde verileri geri yükle
+        window.onload = function() {
+            loadData();
+            renderItems();
+            renderSchedule();
+            
+            // Mobil cihaz tespiti
+            if (isMobile) {
+                document.getElementById('mobileInstructions').style.display = 'block';
+            }
+        };
+
+        function addItem() {
+            const name = document.getElementById('itemName').value.trim();
+            const content = document.getElementById('itemContent').value.trim();
+            
+            if (!name) {
+                alert('Lütfen ürün adını girin!');
+                return;
+            }
+
+            const item = {
+                id: Date.now(),
+                name: name,
+                content: content || 'İçerik bilgisi eklenmemiş'
+            };
+
+            items.push(item);
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemContent').value = '';
+            
+            renderItems();
+            saveData();
+        }
+
+        function renderItems() {
+            const container = document.getElementById('itemsList');
+            container.innerHTML = '';
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.dataset.itemId = item.id;
+                
+                if (isMobile) {
+                    // Mobil için touch eventleri
+                    div.addEventListener('touchstart', handleTouchStart);
+                    div.addEventListener('touchend', handleTouchEnd);
+                    div.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        selectItemMobile(item.id);
+                    });
+                } else {
+                    // Desktop için drag events
+                    div.draggable = true;
+                    div.ondragstart = dragStart;
+                }
+                
+                div.innerHTML = `
+                    <div class="item-header">
+                        <h4>${item.name}</h4>
+                        <button class="detail-btn" onclick="toggleDetails(${item.id})">📋 Detay</button>
+                    </div>
+                    <div class="item-content" id="content-${item.id}">
+                        <p>${item.content}</p>
+                    </div>
+                `;
+                
+                container.appendChild(div);
+            });
+        }
+
+        function selectItemMobile(itemId) {
+            // Önceki seçimi temizle
+            document.querySelectorAll('.item').forEach(el => {
+                el.classList.remove('mobile-selected');
+            });
+            
+            // Yeni seçimi işaretle
+            const itemEl = document.querySelector(`[data-item-id="${itemId}"]`);
+            if (itemEl) {
+                itemEl.classList.add('mobile-selected');
+                selectedItem = items.find(i => i.id === itemId);
+                
+                // Zaman dilimlerini vurgula
+                document.querySelectorAll('.time-slot').forEach(slot => {
+                    slot.classList.add('mobile-highlight');
+                });
+            }
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+        }
+
+        function renderSchedule() {
+            Object.keys(schedule).forEach(timeSlot => {
+                const container = document.getElementById(`${timeSlot}-items`);
+                container.innerHTML = '';
+                
+                schedule[timeSlot].forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'scheduled-item';
+                    
+                    div.innerHTML = `
+                        <button class="remove-btn" onclick="removeFromSchedule('${timeSlot}', ${item.id})">&times;</button>
+                        <h5>${item.name}</h5>
+                    `;
+                    container.appendChild(div);
+                });
+            });
+        }
+
+        function handleMobileSlotClick(timeSlot) {
+            if (isMobile && selectedItem) {
+                // Ürün zaten bu zaman diliminde var mı kontrol et
+                if (!schedule[timeSlot].find(i => i.id === selectedItem.id)) {
+                    schedule[timeSlot].push(selectedItem);
+                    renderSchedule();
+                    saveData();
+                }
+                
+                // Seçimi temizle
+                selectedItem = null;
+                document.querySelectorAll('.item').forEach(el => {
+                    el.classList.remove('mobile-selected');
+                });
+                document.querySelectorAll('.time-slot').forEach(slot => {
+                    slot.classList.remove('mobile-highlight');
+                });
+            }
+        }
+
+        function dragStart(event) {
+            event.dataTransfer.setData('text/plain', event.target.dataset.itemId);
+        }
+
+        function allowDrop(event) {
+            if (!isMobile) {
+                event.preventDefault();
+                event.currentTarget.classList.add('drag-over');
+            }
+        }
+
+        function drop(event) {
+            if (!isMobile) {
+                event.preventDefault();
+                event.currentTarget.classList.remove('drag-over');
+                
+                const itemId = parseInt(event.dataTransfer.getData('text/plain'));
+                const timeSlot = event.currentTarget.dataset.time;
+                const item = items.find(i => i.id === itemId);
+                
+                if (item && !schedule[timeSlot].find(i => i.id === itemId)) {
+                    schedule[timeSlot].push(item);
+                    renderSchedule();
+                    saveData();
+                }
+            }
+        }
+
+        function removeFromSchedule(timeSlot, itemId) {
+            schedule[timeSlot] = schedule[timeSlot].filter(item => item.id !== itemId);
+            renderSchedule();
+            saveData();
+        }
+
+        function toggleDetails(itemId) {
+            const contentDiv = document.getElementById(`content-${itemId}`);
+            const isExpanded = contentDiv.classList.contains('expanded');
+            
+            if (isExpanded) {
+                contentDiv.classList.remove('expanded');
+            } else {
+                contentDiv.classList.add('expanded');
+            }
+        }
+
+        function generateReport() {
+            const timeSlotNames = {
+                'morning-empty': '🌅 Sabah Aç Karnına',
+                'lunch-empty': '🍽️ Öğlen Aç Karnına',
+                'evening-empty': '🌇 Akşam Aç Karnına',
+                'bedtime': '🌙 Gece Yatmadan Önce'
+            };
+
+            let report = `📋 GÜNLÜK SUPPLEMENT PROGRAMI\n`;
+            report += `📅 Tarih: ${new Date().toLocaleDateString('tr-TR')}\n`;
+            report += `${'='.repeat(50)}\n\n`;
+
+            Object.keys(schedule).forEach(timeSlot => {
+                if (schedule[timeSlot].length > 0) {
+                    report += `${timeSlotNames[timeSlot]}\n`;
+                    report += `${'-'.repeat(30)}\n`;
+                    
+                    schedule[timeSlot].forEach((item, index) => {
+                        report += `\n${index + 1}. ⭐ ${item.name.toUpperCase()}\n`;
+                        report += `${'-'.repeat(item.name.length + 8)}\n`;
+                        
+                        // İçeriği daha düzenli formatla
+                        const contentLines = item.content.split('\n').filter(line => line.trim());
+                        contentLines.forEach(line => {
+                            const trimmedLine = line.trim();
+                            if (trimmedLine) {
+                                // Eğer satır mg/mcg/IU içeriyorsa özel formatla
+                                if (trimmedLine.match(/\d+\s*(mg|mcg|IU|gr)/i)) {
+                                    report += `   🔹 ${trimmedLine}\n`;
+                                } else {
+                                    report += `   • ${trimmedLine}\n`;
+                                }
+                            }
+                        });
+                        report += `\n`;
+                    });
+                    report += `\n`;
+                }
+            });
+
+            if (report === `📋 GÜNLÜK SUPPLEMENT PROGRAMI\n📅 Tarih: ${new Date().toLocaleDateString('tr-TR')}\n${'='.repeat(50)}\n\n\n`) {
+                report += '⚠️ Henüz hiçbir supplement planlanmamış.\n';
+            }
+
+            document.getElementById('reportContent').textContent = report;
+            document.getElementById('reportModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('reportModal').style.display = 'none';
+        }
+
+        function printReport() {
+            const reportContent = document.getElementById('reportContent').textContent;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Günlük Supplement Programı</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            pre { white-space: pre-wrap; line-height: 1.6; }
+                        </style>
+                    </head>
+                    <body>
+                        <pre>${reportContent}</pre>
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function clearAll() {
+            if (confirm('Tüm programı temizlemek istediğinizden emin misiniz?')) {
+                schedule = {
+                    'morning-empty': [],
+                    'lunch-empty': [],
+                    'evening-empty': [],
+                    'bedtime': []
+                };
+                renderSchedule();
+                saveData();
+            }
+        }
+
+        function saveData() {
+            const data = {
+                items: items,
+                schedule: schedule,
+                timestamp: new Date().toISOString(),
+                version: '1.0'
+            };
+            // Memory'de tutuyoruz
+            window.appData = data;
+            
+            // LocalStorage'a da kaydet (varsa)
+            try {
+                localStorage.setItem('supplementTracker', JSON.stringify(data));
+            } catch(e) {
+                // LocalStorage yoksa sessizce devam et
+            }
+        }
+
+        function loadData() {
+            let loadedData = null;
+            
+            // Önce memory'den kontrol et
+            if (window.appData) {
+                loadedData = window.appData;
+            } else {
+                // LocalStorage'dan yüklemeyi dene
+                try {
+                    const saved = localStorage.getItem('supplementTracker');
+                    if (saved) {
+                        loadedData = JSON.parse(saved);
+                    }
+                } catch(e) {
+                    // LocalStorage yoksa sessizce devam et
+                }
+            }
+            
+            if (loadedData) {
+                items = loadedData.items || [];
+                schedule = loadedData.schedule || {
+                    'morning-empty': [],
+                    'lunch-empty': [],
+                    'evening-empty': [],
+                    'bedtime': []
+                };
+            } else {
+                // Örnek veriler ekleyelim
+                items = [
+                    {id: 1, name: 'Vitamin D3', content: '1000 IU\nKolekkalsiferol içerir\nBağışıklık sistemi desteği'},
+                    {id: 2, name: 'Magnezyum', content: '200mg\nMagnezyum Glisinat\nKas ve sinir sağlığı'},
+                    {id: 3, name: 'Omega-3', content: '1000mg\nEPA 300mg, DHA 200mg\nBalık yağı kaynaklı'},
+                    {id: 4, name: '⏰ 20dk Bekle', content: 'Vitaminlerin emilimi için\nBekleme süresi'},
+                    {id: 5, name: '🥤 Smoothie', content: 'Muz, Yaban Mersini\nProtein Tozu, Chia Tohumu'}
+                ];
+                schedule = {
+                    'morning-empty': [],
+                    'lunch-empty': [],
+                    'evening-empty': [],
+                    'bedtime': []
+                };
+            }
+        }
+
+        function backupData() {
+            const data = {
+                items: items,
+                schedule: schedule,
+                timestamp: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `supplement-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            alert('✅ Veriler başarıyla yedeklendi!\nDosya: supplement-backup-' + new Date().toISOString().split('T')[0] + '.json');
+        }
+
+        function restoreData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Veri formatını kontrol et
+                    if (!data.items || !data.schedule) {
+                        alert('❌ Geçersiz yedek dosyası formatı!');
+                        return;
+                    }
+                    
+                    // Verileri geri yükle
+                    items = data.items;
+                    schedule = data.schedule;
+                    
+                    // Ekranı güncelle
+                    renderItems();
+                    renderSchedule();
+                    saveData();
+                    
+                    alert('✅ Veriler başarıyla geri yüklendi!\n' + 
+                          'Ürün sayısı: ' + items.length + '\n' +
+                          'Yedek tarihi: ' + (data.timestamp ? new Date(data.timestamp).toLocaleString('tr-TR') : 'Bilinmiyor'));
+                    
+                } catch (error) {
+                    alert('❌ Dosya okuma hatası!\nLütfen geçerli bir JSON yedek dosyası seçin.');
+                }
+            };
+            reader.readAsText(file);
+            
+            // Input'u temizle
+            event.target.value = '';
+        }
+
+        // Modal dışına tıklanınca kapat
+        window.onclick = function(event) {
+            const modal = document.getElementById('reportModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        // Drag over efektini temizle
+        document.addEventListener('dragleave', function(e) {
+            if (e.target.classList.contains('time-slot') && !isMobile) {
+                e.target.classList.remove('drag-over');
+            }
+        });
+    </script>
+</body>
+</html>
