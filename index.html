@@ -567,6 +567,7 @@
             <h2>📋 Günlük Supplement Programı</h2>
             <div class="report-content" id="reportContent"></div>
             <div style="text-align: center; margin-top: 20px;">
+                <button onclick="copyReport()" style="padding: 10px 20px; background: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">📋 Kopyala</button>
                 <button onclick="printReport()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">🖨️ Yazdır</button>
             </div>
         </div>
@@ -886,6 +887,43 @@
 
             document.getElementById('reportContent').textContent = report;
             document.getElementById('reportModal').style.display = 'block';
+        }
+
+        function copyReport() {
+            const reportContent = document.getElementById('reportContent').textContent;
+            
+            // Modern tarayıcılar için
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(reportContent).then(() => {
+                    alert('✅ Rapor panoya kopyalandı!');
+                }).catch(() => {
+                    // Fallback yöntemi
+                    copyToClipboardFallback(reportContent);
+                });
+            } else {
+                // Eski tarayıcılar için fallback
+                copyToClipboardFallback(reportContent);
+            }
+        }
+
+        function copyToClipboardFallback(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                alert('✅ Rapor panoya kopyalandı!');
+            } catch (err) {
+                alert('❌ Kopyalama başarısız! Lütfen metni manuel olarak seçip kopyalayın.');
+            }
+            
+            document.body.removeChild(textArea);
         }
 
         function closeModal() {
