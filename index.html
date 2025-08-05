@@ -307,17 +307,23 @@
             position: absolute;
             top: 5px;
             right: 5px;
-            background: #dc3545;
-            color: white;
+            background: transparent;
+            color: #adb5bd;
             border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            border-radius: 3px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
             font-size: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .scheduled-item .remove-btn:hover {
+            background: #f8f9fa;
+            color: #dc3545;
         }
 
         .scheduled-item h5 {
