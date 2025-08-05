@@ -98,6 +98,67 @@
             transform: translateY(-2px);
         }
 
+        .bulk-add {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #e8f5e8;
+            border-radius: 10px;
+            border: 2px solid #28a745;
+        }
+
+        .bulk-add h3 {
+            color: #155724;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .bulk-add textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            resize: vertical;
+            min-height: 80px;
+            font-size: 12px;
+        }
+
+        .bulk-add button {
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .bulk-add button:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .search-container {
+            margin-bottom: 15px;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #17a2b8;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .search-container input:focus {
+            outline: none;
+            border-color: #138496;
+            box-shadow: 0 0 8px rgba(23, 162, 184, 0.3);
+        }
+
         .items-list {
             max-height: 400px;
             overflow-y: auto;
@@ -136,21 +197,42 @@
             flex: 1;
         }
 
+        .item-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
         .detail-btn {
             background: #17a2b8;
             color: white;
             border: none;
             border-radius: 15px;
-            padding: 6px 12px;
-            font-size: 11px;
+            padding: 4px 8px;
+            font-size: 10px;
             cursor: pointer;
             transition: all 0.3s;
-            margin-left: 10px;
             font-weight: bold;
         }
 
         .detail-btn:hover {
             background: #138496;
+            transform: scale(1.05);
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 4px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
             transform: scale(1.05);
         }
 
@@ -181,19 +263,22 @@
         }
 
         .schedule-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
             height: 100%;
+            overflow-x: auto;
         }
 
         .time-slot {
             background: #f8f9fa;
             border-radius: 15px;
-            padding: 20px;
+            padding: 15px;
             border: 2px dashed #dee2e6;
             transition: all 0.3s;
-            min-height: 200px;
+            min-height: 500px;
+            min-width: 250px;
+            flex: 1;
         }
 
         .time-slot.drag-over {
@@ -364,7 +449,12 @@
             }
             
             .schedule-grid {
-                grid-template-columns: 1fr;
+                flex-direction: column;
+            }
+            
+            .time-slot {
+                min-width: auto;
+                min-height: 200px;
             }
             
             .item {
@@ -412,7 +502,16 @@
                     <button onclick="addItem()">Ürün Ekle</button>
                 </div>
 
-                <h2>📋 Ürün Listesi</h2>
+                <div class="bulk-add">
+                    <h3>📋 Toplu Ürün Ekleme</h3>
+                    <textarea id="bulkItems" placeholder="Her satıra bir ürün yazın:&#10;Vitamin D3|1000 IU, Kolekkalsiferol&#10;Magnezyum|200mg, Glisinat&#10;Omega-3|1000mg, EPA 300mg"></textarea>
+                    <button onclick="addBulkItems()">Toplu Ekle</button>
+                </div>
+
+                <h2>🔍 Ürün Listesi</h2>
+                <div class="search-container">
+                    <input type="text" id="searchBox" placeholder="🔍 Ürün ara..." onkeyup="filterItems()">
+                </div>
                 <div class="mobile-instructions" id="mobileInstructions" style="display: none;">
                     📱 <strong>Mobil Kullanım:</strong> Ürüne dokun, sonra istediğin zaman dilimine dokun
                 </div>
@@ -514,6 +613,77 @@
             saveData();
         }
 
+        function addBulkItems() {
+            const bulkText = document.getElementById('bulkItems').value.trim();
+            if (!bulkText) {
+                alert('Lütfen ürün listesini girin!');
+                return;
+            }
+
+            const lines = bulkText.split('\n');
+            let addedCount = 0;
+
+            lines.forEach(line => {
+                const trimmedLine = line.trim();
+                if (trimmedLine) {
+                    const parts = trimmedLine.split('|');
+                    const name = parts[0] ? parts[0].trim() : '';
+                    const content = parts[1] ? parts[1].trim() : 'İçerik bilgisi eklenmemiş';
+
+                    if (name) {
+                        const item = {
+                            id: Date.now() + Math.random(),
+                            name: name,
+                            content: content
+                        };
+                        items.push(item);
+                        addedCount++;
+                    }
+                }
+            });
+
+            if (addedCount > 0) {
+                document.getElementById('bulkItems').value = '';
+                renderItems();
+                saveData();
+                alert(`✅ ${addedCount} ürün başarıyla eklendi!`);
+            } else {
+                alert('❌ Geçerli ürün bulunamadı!');
+            }
+        }
+
+        function deleteItem(itemId) {
+            if (confirm('Bu ürünü silmek istediğinizden emin misiniz?')) {
+                // Ürünü listeden sil
+                items = items.filter(item => item.id !== itemId);
+                
+                // Programdan da sil
+                Object.keys(schedule).forEach(timeSlot => {
+                    schedule[timeSlot] = schedule[timeSlot].filter(item => item.id !== itemId);
+                });
+                
+                renderItems();
+                renderSchedule();
+                saveData();
+            }
+        }
+
+        function filterItems() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const itemElements = document.querySelectorAll('.item');
+            
+            itemElements.forEach(element => {
+                const itemName = element.querySelector('h4').textContent.toLowerCase();
+                const itemContent = element.querySelector('p').textContent.toLowerCase();
+                
+                if (itemName.includes(searchTerm) || itemContent.includes(searchTerm)) {
+                    element.style.display = 'block';
+                } else {
+                    element.style.display = 'none';
+                }
+            });
+        }
+
         function renderItems() {
             const container = document.getElementById('itemsList');
             container.innerHTML = '';
@@ -540,7 +710,10 @@
                 div.innerHTML = `
                     <div class="item-header">
                         <h4>${item.name}</h4>
-                        <button class="detail-btn" onclick="toggleDetails(${item.id})">📋 Detay</button>
+                        <div class="item-buttons">
+                            <button class="detail-btn" onclick="toggleDetails(${item.id})">📋 Detay</button>
+                            <button class="delete-btn" onclick="deleteItem(${item.id})">🗑️ Sil</button>
+                        </div>
                     </div>
                     <div class="item-content" id="content-${item.id}">
                         <p>${item.content}</p>
